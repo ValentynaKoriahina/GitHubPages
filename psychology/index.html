@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>IAPT — PHQ-9 / GAD-7 / Шкала фобии (автоподсчёт)</title>
+  <style>
+    :root { color-scheme: light; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 0; background:#ffffff; color:#111; }
+    header { padding: 18px 20px; border-bottom: 1px solid rgba(127,127,127,.35); }
+    main { padding: 18px 20px 40px; max-width: 1100px; margin: 0 auto; }
+    h1 { margin: 0; font-size: 18px; }
+    .hint { opacity: .8; margin-top: 6px; font-size: 13px; line-height: 1.35; }
+    section { margin-top: 18px; padding: 16px; border: 1px solid #d9d9d9; border-radius: 12px; background:#ffffff; }
+    section h2 { margin: 0 0 10px; font-size: 16px; }
+    .sub { margin: 0 0 14px; font-size: 13px; opacity: .85; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 10px 8px; border-top: 1px solid rgba(127,127,127,.25); vertical-align: top; }
+    th { text-align: left; font-size: 12px; opacity: .9; }
+    .q { width: 48%; }
+    .choices { width: 52%; }
+    .radio-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+    .radio { display: flex; gap: 6px; align-items: center; padding: 8px; border: 1px solid rgba(127,127,127,.25); border-radius: 10px; }
+    .radio input { margin: 0; }
+    .radio span { font-size: 12.5px; line-height: 1.2; }
+    .scorebar { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+    .score { font-size: 22px; font-weight: 700; }
+    .pill { font-size: 12px; padding: 4px 10px; border-radius: 999px; border: 1px solid rgba(127,127,127,.35); opacity: .95; }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+    button { cursor: pointer; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(127,127,127,.35); background: transparent; }
+    button:hover { border-color: rgba(127,127,127,.6); }
+    textarea, input[type="text"] { width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(127,127,127,.35); background: transparent; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 900px) { .grid2 { grid-template-columns: 1fr; } .q { width: 100%; } .choices { width: 100%; } }
+    .phobia-scale { display: grid; grid-template-columns: 1fr; gap: 10px; }
+    .phobia-item { padding: 12px; border: 1px solid rgba(127,127,127,.25); border-radius: 12px; }
+    .phobia-item .label { font-size: 13px; margin-bottom: 8px; }
+    .phobia-item .row { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 6px; }
+    .phobia-item .cell { display: flex; justify-content: center; align-items: center; border: 1px solid rgba(127,127,127,.25); border-radius: 10px; padding: 8px 6px; gap: 6px; }
+    .phobia-item .cell span { font-size: 12px; opacity: .9; }
+    .small { font-size: 12px; opacity: .8; line-height: 1.35; }
+    .footer { margin-top: 16px; font-size: 12px; opacity: .8; }
+    .ok { opacity: .85; }
+    .danger { border-color: rgba(220,70,70,.55) !important; }
+  
+    /* --- Print fixes --- */
+    @media print {
+      header { border-bottom: none; }
+      .hint, .actions, #btnSave, #btnLoad, #btnClear, #btnPrint, #btnExport, #btnImport, #importFile { display: none !important; }
+      main { max-width: none; padding: 0 10mm 0; }
+      section { break-inside: avoid-page; page-break-inside: avoid; }
+      table, tr, td, th { break-inside: avoid-page; page-break-inside: avoid; }
+      .radio-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
+      .radio { padding: 5px 6px; }
+      .radio span { font-size: 10px; line-height: 1.1; }
+      th, td { padding: 6px 6px; }
+      .q { width: 58%; }
+      .choices { width: 42%; }
+      /* Make answers readable instead of squished */
+      .radio { align-items: flex-start; }
+      /* Phobia scale */
+      .phobia-item .row { grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 3px; }
+      .phobia-item .cell { padding: 4px 3px; }
+      .phobia-item .cell span { font-size: 10px; }
+      /* Prevent large empty gaps at end of pages */
+      section { margin-top: 10px; }
+    }
+
+</style>
+</head>
+<body>
+  <header>
+    <h1>IAPT — базовая психологическая оценка: PHQ‑9, GAD‑7 и шкала фобии (автоподсчёт)</h1>
+    <div class="hint">
+      Это интерфейс для заполнения и автоматического подсчёта баллов. Он не является диагнозом.
+      Если у вас есть мысли о самоповреждении или суициде — обратитесь за срочной помощью (службы экстренной помощи вашей страны, кризисные линии, врач).
+    </div>
+  </header>
+
+  <main>
+    <section>
+      <h2>Данные (необязательно)</h2>
+      <p class="sub">Можно заполнить для удобства сохранения/печати.</p>
+      <div class="grid2">
+        <div>
+          <label>Имя / код клиента
+            <input type="text" id="clientName" value="Валентина Корягина">
+          </label>
+        </div>
+        <div>
+          <label>Дата
+            <input type="text" id="dateStr" placeholder="Например: 24.02.2026">
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <section id="phq9">
+      <div class="scorebar">
+        <h2 style="margin:0;">PHQ‑9</h2>
+        <div class="pill">Сумма: <span class="score" id="phq9Score">0</span> / 27</div>
+        
+      </div>
+      <p class="sub">
+        За последние 2 недели: как часто вас беспокоили следующие проблемы?
+        (0 — никогда; 1 — несколько дней; 2 — больше половины времени; 3 — почти каждый день)
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th class="q">Вопрос</th>
+            <th class="choices">Ответ</th>
+          </tr>
+        </thead>
+        <tbody id="phq9Body"></tbody>
+      </table>
+    </section>
+
+    <section id="gad7">
+      <div class="scorebar">
+        <h2 style="margin:0;">GAD‑7</h2>
+        <div class="pill">Сумма: <span class="score" id="gad7Score">0</span> / 21</div>
+        
+      </div>
+      <p class="sub">
+        За последние 2 недели: как часто вас беспокоили следующие проблемы?
+        (0 — никогда; 1 — несколько дней; 2 — больше половины времени; 3 — почти каждый день)
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th class="q">Вопрос</th>
+            <th class="choices">Ответ</th>
+          </tr>
+        </thead>
+        <tbody id="gad7Body"></tbody>
+      </table>
+    </section>
+
+    <section id="phobia">
+      <div class="scorebar">
+        <h2 style="margin:0;">IAPT шкала фобии</h2>
+        <div class="pill">Выбрано: <span class="score" id="phobiaFilled">0</span> / 3</div>
+        <div class="pill">Среднее: <span class="score" id="phobiaAvg">0.0</span> / 8</div>
+      </div>
+      <p class="sub">
+        Выберите цифру 0–8, отражающую, насколько сильно вы бы избегали ситуации/объекта.
+        0 — не избегаю; 8 — всегда избегаю.
+      </p>
+
+      <div class="phobia-scale" id="phobiaBody"></div>
+      <div class="small ok">Подсчёт для шкалы фобии: среднее значение по заполненным пунктам (0–8). Если нужен другой формат (сумма/порог) — легко поменяю.</div>
+    </section>
+
+    <section>
+      <h2>Заметки</h2>
+      <textarea id="notes" rows="5" placeholder="Например: контекст, важные наблюдения, комментарии."></textarea>
+
+      <div class="actions">
+        <button type="button" id="btnSave">Сохранить в браузере</button>
+        <button type="button" id="btnLoad">Загрузить из браузера</button>
+        <button type="button" id="btnClear">Очистить ответы</button>
+        <button type="button" id="btnPrint">Печать / PDF</button>
+        <button type="button" id="btnExport">Экспорт JSON</button>
+        <button type="button" id="btnImport">Импорт JSON</button>
+        <input type="file" id="importFile" accept="application/json" style="display:none;" />
+      </div>
+
+      <div class="footer">
+        Локальное сохранение использует LocalStorage (данные остаются в этом браузере/устройстве).<br>
+        ©1999 Pfizer Inc. © український переклад УІКПТ (2012)
+      </div>
+    </section>
+  </main>
+
+<script>
+(function(){
+  const SCALE_0_3 = [
+    {v:0, t:"Никогда"},
+    {v:1, t:"Несколько дней"},
+    {v:2, t:"Больше половины времени"},
+    {v:3, t:"Почти каждый день"},
+  ];
+
+  const PHQ9 = [
+    "Снижение интереса или удовольствия от занятий",
+    "Плохое настроение, подавленность или безнадёжность",
+    "Проблемы со сном: трудно заснуть, беспокойный сон или слишком много сна",
+    "Чувство усталости или низкая энергия",
+    "Плохой аппетит или переедание",
+    "Негативные мысли о себе: что вы неудачник(ца) или подвели себя/семью",
+    "Трудности с концентрацией (например, при чтении или просмотре ТВ)",
+    "Замедленность движений/речи, заметная другим; или наоборот — необычная суетливость/возбуждение",
+    "Мысли, что лучше бы вы умерли, или мысли о самоповреждении"
+  ];
+
+  const GAD7 = [
+    "Раздражительность, тревожность или чувство, что вы «на грани»",
+    "Постоянное беспокойство, которое трудно остановить или контролировать",
+    "Чрезмерные переживания по разным поводам",
+    "Трудно расслабиться",
+    "Настолько беспокойны, что трудно усидеть на месте",
+    "Повышенная раздражительность",
+    "Страх, что случится что-то ужасное"
+  ];
+
+  const PHOBIA = [
+    "Социальные ситуации из-за страха быть засоромленным(ой) или высмеянным(ой)",
+    "Определённые ситуации из-за страха панических атак или других тревожных симптомов (например, потеря контроля над мочевым пузырём, рвота, головокружение)",
+    "Определённые ситуации из-за страха отдельных объектов/деятельности (например, животные, высота, кровь, замкнутое пространство, вождение, перелёт и т. п.)"
+  ];
+
+  function severityPHQ9(score){
+    if (score <= 4) return "Минимальная (0–4)";
+    if (score <= 9) return "Лёгкая (5–9)";
+    if (score <= 14) return "Умеренная (10–14)";
+    if (score <= 19) return "Умеренно тяжёлая (15–19)";
+    return "Тяжёлая (20–27)";
+  }
+
+  function severityGAD7(score){
+    if (score <= 4) return "Минимальная (0–4)";
+    if (score <= 9) return "Лёгкая (5–9)";
+    if (score <= 14) return "Умеренная (10–14)";
+    return "Тяжёлая (15–21)";
+  }
+
+  function make0to3Row(name, idx){
+    const idBase = `${name}_${idx}`;
+    const wrap = document.createElement("div");
+    wrap.className = "radio-row";
+    for (const opt of SCALE_0_3){
+      const lab = document.createElement("label");
+      lab.className = "radio";
+      const inp = document.createElement("input");
+      inp.type = "radio";
+      inp.name = idBase;
+      inp.value = String(opt.v);
+      inp.setAttribute("data-scale", name);
+      inp.setAttribute("data-idx", String(idx));
+      const sp = document.createElement("span");
+      sp.textContent = `${opt.v} — ${opt.t}`;
+      lab.appendChild(inp);
+      lab.appendChild(sp);
+      wrap.appendChild(lab);
+    }
+    return wrap;
+  }
+
+  function renderScale(tbodyId, scaleName, questions){
+    const tbody = document.getElementById(tbodyId);
+    questions.forEach((q, i) => {
+      const tr = document.createElement("tr");
+      const tdQ = document.createElement("td");
+      tdQ.className = "q";
+      tdQ.innerHTML = `<strong>${i+1}.</strong> ${escapeHtml(q)}`;
+      const tdA = document.createElement("td");
+      tdA.className = "choices";
+      tdA.appendChild(make0to3Row(scaleName, i));
+      tr.appendChild(tdQ);
+      tr.appendChild(tdA);
+      tbody.appendChild(tr);
+    });
+  }
+
+  function renderPhobia(){
+    const body = document.getElementById("phobiaBody");
+    PHOBIA.forEach((q, i) => {
+      const item = document.createElement("div");
+      item.className = "phobia-item";
+      const label = document.createElement("div");
+      label.className = "label";
+      label.innerHTML = `<strong>${i+1}.</strong> ${escapeHtml(q)}`;
+      const row = document.createElement("div");
+      row.className = "row";
+
+      for (let v=0; v<=8; v++){
+        const cellLab = document.createElement("label");
+        cellLab.className = "cell";
+        const inp = document.createElement("input");
+        inp.type = "radio";
+        inp.name = `phobia_${i}`;
+        inp.value = String(v);
+
+        const sp = document.createElement("span");
+        sp.textContent = String(v);
+
+        cellLab.appendChild(inp);
+        cellLab.appendChild(sp);
+        row.appendChild(cellLab);
+      }
+
+      item.appendChild(label);
+      item.appendChild(row);
+      body.appendChild(item);
+    });
+  }
+
+  function escapeHtml(s){
+    return String(s)
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#39;");
+  }
+
+  function getScore(scaleName, nItems){
+    let sum = 0;
+    for (let i=0; i<nItems; i++){
+      const checked = document.querySelector(`input[name="${scaleName}_${i}"]:checked`);
+      if (checked) sum += Number(checked.value);
+    }
+    return sum;
+  }
+
+  function getPhobiaStats(){
+    let sum = 0;
+    let filled = 0;
+    for (let i=0; i<PHOBIA.length; i++){
+      const checked = document.querySelector(`input[name="phobia_${i}"]:checked`);
+      if (checked){
+        sum += Number(checked.value);
+        filled += 1;
+      }
+    }
+    const avg = filled ? (sum / filled) : 0;
+    return {filled, avg};
+  }
+
+  function updateAll(){
+    const phq = getScore("phq9", PHQ9.length);
+    const gad = getScore("gad7", GAD7.length);
+    const phobia = getPhobiaStats();
+
+    document.getElementById("phq9Score").textContent = String(phq);
+    document.getElementById("gad7Score").textContent = String(gad);
+
+
+    document.getElementById("phobiaFilled").textContent = String(phobia.filled);
+    document.getElementById("phobiaAvg").textContent = phobia.avg.toFixed(1);
+
+    // подсветка риска: PHQ-9 пункт 9, если >= 1
+    const item9 = document.querySelector('input[name="phq9_8"]:checked');
+    const phq9Section = document.getElementById("phq9");
+    if (item9 && Number(item9.value) >= 1) phq9Section.classList.add("danger");
+    else phq9Section.classList.remove("danger");
+  }
+
+  function collect(){
+    const data = {
+      clientName: document.getElementById("clientName").value || "",
+      dateStr: document.getElementById("dateStr").value || "",
+      notes: document.getElementById("notes").value || "",
+      phq9: [],
+      gad7: [],
+      phobia: []
+    };
+    for (let i=0; i<PHQ9.length; i++){
+      const checked = document.querySelector(`input[name="phq9_${i}"]:checked`);
+      data.phq9.push(checked ? Number(checked.value) : null);
+    }
+    for (let i=0; i<GAD7.length; i++){
+      const checked = document.querySelector(`input[name="gad7_${i}"]:checked`);
+      data.gad7.push(checked ? Number(checked.value) : null);
+    }
+    for (let i=0; i<PHOBIA.length; i++){
+      const checked = document.querySelector(`input[name="phobia_${i}"]:checked`);
+      data.phobia.push(checked ? Number(checked.value) : null);
+    }
+    return data;
+  }
+
+  function apply(data){
+    document.getElementById("clientName").value = data?.clientName ?? "";
+    document.getElementById("dateStr").value = data?.dateStr ?? "";
+    document.getElementById("notes").value = data?.notes ?? "";
+
+    function setRadio(name, idx, val){
+      if (val === null || val === undefined) return;
+      const el = document.querySelector(`input[name="${name}_${idx}"][value="${val}"]`);
+      if (el) el.checked = true;
+    }
+
+    (data?.phq9 || []).forEach((v,i)=>setRadio("phq9", i, v));
+    (data?.gad7 || []).forEach((v,i)=>setRadio("gad7", i, v));
+
+    (data?.phobia || []).forEach((v,i)=>{
+      if (v === null || v === undefined) return;
+      const el = document.querySelector(`input[name="phobia_${i}"][value="${v}"]`);
+      if (el) el.checked = true;
+    });
+
+    updateAll();
+  }
+
+  function clearAll(){
+    document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+    document.getElementById("notes").value = "";
+    updateAll();
+  }
+
+  function saveLocal(){
+    const payload = collect();
+    localStorage.setItem("iapt_form_v1", JSON.stringify(payload));
+    alert("Сохранено в браузере.");
+  }
+
+  function loadLocal(){
+    const raw = localStorage.getItem("iapt_form_v1");
+    if (!raw) { alert("В браузере нет сохранённых данных."); return; }
+    try { apply(JSON.parse(raw)); alert("Загружено."); }
+    catch(e){ console.error(e); alert("Не удалось прочитать сохранение."); }
+  }
+
+  function exportJson(){
+    const payload = collect();
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "iapt_results.json";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function importJson(file){
+    const reader = new FileReader();
+    reader.onload = () => {
+      try { apply(JSON.parse(String(reader.result))); alert("Импортировано."); }
+      catch(e){ console.error(e); alert("Файл JSON повреждён или не подходит."); }
+    };
+    reader.readAsText(file);
+  }
+
+  // Render
+  renderScale("phq9Body", "phq9", PHQ9);
+  renderScale("gad7Body", "gad7", GAD7);
+  renderPhobia();
+  // автоустановка сегодняшней даты
+  const d = new Date();
+  const dd = String(d.getDate()).padStart(2,'0');
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const yyyy = d.getFullYear();
+  document.getElementById("dateStr").value = `${dd}.${mm}.${yyyy}`;
+
+  updateAll();
+
+  // listeners
+  document.addEventListener("change", (e) => {
+    const t = e.target;
+    if (t && t.matches('input[type="radio"]')) updateAll();
+  });
+
+  document.getElementById("btnSave").addEventListener("click", saveLocal);
+  document.getElementById("btnLoad").addEventListener("click", loadLocal);
+  document.getElementById("btnClear").addEventListener("click", () => { if (confirm("Очистить все ответы?")) clearAll(); });
+  document.getElementById("btnPrint").addEventListener("click", () => window.print());
+  document.getElementById("btnExport").addEventListener("click", exportJson);
+
+  const importFile = document.getElementById("importFile");
+  document.getElementById("btnImport").addEventListener("click", () => importFile.click());
+  importFile.addEventListener("change", () => {
+    if (importFile.files && importFile.files[0]) importJson(importFile.files[0]);
+    importFile.value = "";
+  });
+})();
+</script>
+</body>
+</html>
