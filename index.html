@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Мои проекты</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    body {
+      font-family: system-ui, -apple-system, Arial, sans-serif;
+      margin: 0;
+      background: #f6f7fb;
+      color: #222;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 60px auto;
+      padding: 0 20px;
+    }
+
+    h1 {
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: #666;
+      margin-bottom: 32px;
+    }
+
+    .card {
+      display: block;
+      text-decoration: none;
+      color: inherit;
+      background: white;
+      padding: 18px 20px;
+      border-radius: 12px;
+      margin-bottom: 14px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+      transition: transform .15s ease, box-shadow .15s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    }
+
+    .title {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .desc {
+      font-size: 14px;
+      color: #555;
+    }
+
+    footer {
+      margin-top: 40px;
+      font-size: 13px;
+      color: #777;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>👋 Мои демо-проекты</h1>
+    <div class="subtitle">
+      Эксперименты, интерфейсы и учебные страницы.
+    </div>
+
+    <!-- Проекты -->
+
+    <a class="card" href="./chess/index.html">
+      <div class="title">♟ Chess Replayer</div>
+      <div class="desc">Просмотр шахматных партий и эксперименты с интерфейсом.</div>
+    </a>
+
+    <a class="card" href="./assistant.html">
+      <div class="title">🎧 Voice Assistant</div>
+      <div class="desc">Демо интерфейса голосового ассистента.</div>
+    </a>
+
+    <a class="card" href="./montessori.html">
+      <div class="title">🧠 Montessori Assistant</div>
+      <div class="desc">Учебные эксперименты и визуальные сценарии.</div>
+    </a>
+
+    <footer>
+      Сделано на GitHub Pages
+    </footer>
+  </div>
+</body>
+</html>
